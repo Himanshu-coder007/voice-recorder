@@ -141,28 +141,28 @@ const Recorder = () => {
   };
 
   return (
-    <div className="w-full max-w-lg flex flex-col items-center justify-center bg-gradient-to-br from-purple-500 to-indigo-600 p-8 rounded-2xl shadow-2xl transform transition hover:scale-105">
+    <div className="w-full max-w-sm sm:max-w-md md:max-w-lg flex flex-col items-center justify-center bg-white bg-opacity-20 backdrop-blur-md p-6 sm:p-8 rounded-2xl shadow-2xl transform transition hover:scale-105">
       {/* Mic Icon with Recording Indicator */}
       <div className="relative">
-        <FaMicrophone className="text-white text-7xl mb-6 transform transition hover:scale-110" />
+        <FaMicrophone className="text-black text-6xl sm:text-7xl mb-4 sm:mb-6 transform transition hover:scale-110" />
         {isRecording && (
           <div className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full animate-ping" />
         )}
       </div>
-
+  
       {/* Timer */}
-      <p className="text-2xl font-semibold text-white animate-pulse">{formatTime(time)}</p>
-
+      <p className="text-xl sm:text-2xl font-semibold text-black animate-pulse">{formatTime(time)}</p>
+  
       {/* Waveform Visualization */}
       <canvas
         ref={canvasRef}
         width="640"
         height="100"
-        className="w-80 h-20 rounded-lg my-6 bg-black bg-opacity-20"
+        className="w-full max-w-xs sm:max-w-sm md:max-w-md h-16 sm:h-20 rounded-lg my-4 sm:my-6 bg-white bg-opacity-20"
       />
-
+  
       {/* Buttons Container */}
-      <div className="flex space-x-4">
+      <div className="flex flex-wrap justify-center gap-4">
         {/* Record/Stop Button */}
         <button
           className={`p-3 ${
@@ -172,21 +172,19 @@ const Recorder = () => {
         >
           {isRecording ? <FaStop size={20} /> : <FaMicrophone size={20} />}
         </button>
-
+  
         {/* Pause/Resume Button */}
         {isRecording && (
           <button
             className={`p-3 ${
               isPaused ? "bg-green-500" : "bg-yellow-500"
-            } text-white rounded-full hover:${
-              isPaused ? "bg-green-600" : "bg-yellow-600"
-            } transition shadow-lg flex items-center justify-center hover:scale-110`}
+            } text-white rounded-full transition shadow-lg flex items-center justify-center hover:scale-110`}
             onClick={handlePauseClick}
           >
             {isPaused ? <FaPlay size={18} /> : <FaPause size={18} />}
           </button>
         )}
-
+  
         {/* Preview Button */}
         {audioBlob && !isRecording && (
           <button
@@ -196,7 +194,7 @@ const Recorder = () => {
             {isPlayingPreview ? <FaPause size={18} /> : <FaPlay size={18} />}
           </button>
         )}
-
+  
         {/* Save Button */}
         {audioBlob && !isRecording && (
           <button
@@ -207,7 +205,7 @@ const Recorder = () => {
           </button>
         )}
       </div>
-
+  
       {/* Audio Preview Box */}
       {audioBlob && !isRecording && (
         <div className="mt-6 w-full flex flex-col items-center animate-fade-in">
@@ -220,7 +218,7 @@ const Recorder = () => {
         </div>
       )}
     </div>
-  );
-};
+  )};
+  
 
 export default Recorder;
