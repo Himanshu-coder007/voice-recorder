@@ -1,5 +1,3 @@
-// Record.js
-
 let mediaRecorder;
 let audioChunks = [];
 let audioContext;
@@ -90,8 +88,8 @@ export const stopRecording = () => {
   });
 };
 
-// Function to save audio Blob to IndexedDB (optional, can be called manually)
-export const saveAudioToIndexedDB = (audioBlob) => {
+// Function to save audio Blob to IndexedDB
+export const saveAudioToIndexedDB = (audioBlob, fileName) => {
   return new Promise((resolve, reject) => {
     const dbName = "VoiceRecorderDB";
     const storeName = "Recordings";
@@ -111,8 +109,12 @@ export const saveAudioToIndexedDB = (audioBlob) => {
       const transaction = db.transaction(storeName, "readwrite");
       const store = transaction.objectStore(storeName);
 
-      // Add the audio Blob to the store
-      const addRequest = store.add({ audio: audioBlob, timestamp: new Date() });
+      // Add the audio Blob and filename to the store
+      const addRequest = store.add({
+        audio: audioBlob,
+        fileName: fileName, // Save the filename
+        timestamp: new Date(),
+      });
 
       addRequest.onsuccess = () => {
         console.log("Audio saved to IndexedDB.");

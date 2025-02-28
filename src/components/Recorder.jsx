@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaMicrophone, FaStop, FaPause, FaPlay, FaSave } from "react-icons/fa";
-import { startRecording, stopRecording, pauseRecording, resumeRecording, saveAudioToIndexedDB } from "./Record.js";
+import {
+  startRecording,
+  stopRecording,
+  pauseRecording,
+  resumeRecording,
+  saveAudioToIndexedDB,
+} from "./Record.js";
 
 const Recorder = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -8,6 +14,8 @@ const Recorder = () => {
   const [time, setTime] = useState(0); // Store time in seconds
   const [audioBlob, setAudioBlob] = useState(null); // Store the recorded audio blob
   const [isPlayingPreview, setIsPlayingPreview] = useState(false); // Track if preview is playing
+  const [isModalOpen, setIsModalOpen] = useState(false); // Control modal visibility
+  const [fileNameInput, setFileNameInput] = useState(""); // Store filename input
   const audioRef = useRef(null); // Reference to the audio element for preview
   const canvasRef = useRef(null); // Reference to the canvas for waveform visualization
 
@@ -133,10 +141,14 @@ const Recorder = () => {
 
   // Handle save button click
   const handleSaveClick = async () => {
-    if (audioBlob) {
-      await saveAudioToIndexedDB(audioBlob);
+    if (fileNameInput) {
+      await saveAudioToIndexedDB(audioBlob, fileNameInput);
       setAudioBlob(null); // Clear the audio blob after saving
+      setFileNameInput(""); // Clear the filename input
+      setIsModalOpen(false); // Close the modal
       alert("Recording saved successfully!");
+    } else {
+      alert("Filename is required to save the recording.");
     }
   };
 
@@ -149,10 +161,10 @@ const Recorder = () => {
           <div className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full animate-ping" />
         )}
       </div>
-  
+
       {/* Timer */}
       <p className="text-xl sm:text-2xl font-semibold text-black animate-pulse">{formatTime(time)}</p>
-  
+
       {/* Waveform Visualization */}
       <canvas
         ref={canvasRef}
@@ -160,7 +172,7 @@ const Recorder = () => {
         height="100"
         className="w-full max-w-xs sm:max-w-sm md:max-w-md h-16 sm:h-20 rounded-lg my-4 sm:my-6 bg-white bg-opacity-20"
       />
-  
+
       {/* Buttons Container */}
       <div className="flex flex-wrap justify-center gap-4">
         {/* Record/Stop Button */}
@@ -172,7 +184,7 @@ const Recorder = () => {
         >
           {isRecording ? <FaStop size={20} /> : <FaMicrophone size={20} />}
         </button>
-  
+
         {/* Pause/Resume Button */}
         {isRecording && (
           <button
@@ -184,7 +196,7 @@ const Recorder = () => {
             {isPaused ? <FaPlay size={18} /> : <FaPause size={18} />}
           </button>
         )}
-  
+
         {/* Preview Button */}
         {audioBlob && !isRecording && (
           <button
@@ -194,18 +206,18 @@ const Recorder = () => {
             {isPlayingPreview ? <FaPause size={18} /> : <FaPlay size={18} />}
           </button>
         )}
-  
+
         {/* Save Button */}
         {audioBlob && !isRecording && (
           <button
             className="p-3 bg-green-500 text-white rounded-full hover:bg-green-600 transition shadow-lg flex items-center justify-center hover:scale-110"
-            onClick={handleSaveClick}
+            onClick={() => setIsModalOpen(true)}
           >
             <FaSave size={18} />
           </button>
         )}
       </div>
-  
+
       {/* Audio Preview Box */}
       {audioBlob && !isRecording && (
         <div className="mt-6 w-full flex flex-col items-center animate-fade-in">
@@ -217,8 +229,37 @@ const Recorder = () => {
           />
         </div>
       )}
+
+{isModalOpen && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md">
+      <h2 className="text-lg font-semibold mb-4 text-black">Save Recording</h2>
+      <input
+        type="text"
+        placeholder="Enter a name for your recording"
+        value={fileNameInput}
+        onChange={(e) => setFileNameInput(e.target.value)}
+        className="w-full p-2 border border-gray-300 rounded-lg mb-4 text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={() => setIsModalOpen(false)}
+          className="bg-gray-500 text-white px-2 py-0.5 rounded text-[10px] hover:bg-gray-600 transition h-6 min-w-[50px] flex items-center justify-center leading-none"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSaveClick}
+          className="bg-green-500 text-white px-2 py-0.5 rounded text-[10px] hover:bg-green-600 transition h-6 min-w-[50px] flex items-center justify-center leading-none"
+        >
+          Save
+        </button>
+      </div>
     </div>
-  )};
-  
+  </div>
+)}
+    </div>
+  );
+};
 
 export default Recorder;
