@@ -1,23 +1,25 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FaMicrophone, FaStop, FaPause, FaPlay, FaSave } from "react-icons/fa";
+import { FaMicrophone, FaStop, FaPause, FaPlay, FaSave, FaDownload } from "react-icons/fa";
 import {
   startRecording,
   stopRecording,
   pauseRecording,
   resumeRecording,
   saveAudioToIndexedDB,
+  convertWavToMp3,
+  convertRecordedAudioToMp3, 
 } from "./Record.js";
 
 const Recorder = () => {
   const [isRecording, setIsRecording] = useState(false);
-  const [isPaused, setIsPaused] = useState(false); // Track if recording is paused
-  const [time, setTime] = useState(0); // Store time in seconds
-  const [audioBlob, setAudioBlob] = useState(null); // Store the recorded audio blob
-  const [isPlayingPreview, setIsPlayingPreview] = useState(false); // Track if preview is playing
-  const [isModalOpen, setIsModalOpen] = useState(false); // Control modal visibility
-  const [fileNameInput, setFileNameInput] = useState(""); // Store filename input
-  const audioRef = useRef(null); // Reference to the audio element for preview
-  const canvasRef = useRef(null); // Reference to the canvas for waveform visualization
+  const [isPaused, setIsPaused] = useState(false);
+  const [time, setTime] = useState(0);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [fileNameInput, setFileNameInput] = useState("");
+  const audioRef = useRef(null);
+  const canvasRef = useRef(null);
 
   // Effect to update the timer
   useEffect(() => {
@@ -49,12 +51,12 @@ const Recorder = () => {
         analyser.getByteTimeDomainData(dataArray);
 
         // Clear the canvas with a semi-transparent background
-        ctx.fillStyle = "rgba(0, 0, 0, 0.1)"; // Dark background for contrast
+        ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
         ctx.fillRect(0, 0, width, height);
 
         // Draw the waveform
         ctx.lineWidth = 2;
-        ctx.strokeStyle = "#00FF00"; // Bright green color for visibility
+        ctx.strokeStyle = "#00FF00";
         ctx.beginPath();
 
         const sliceWidth = (width * 1.0) / dataArray.length;
@@ -106,12 +108,12 @@ const Recorder = () => {
   const handleRecordClick = async () => {
     if (isRecording) {
       const blob = await stopRecording();
-      setAudioBlob(blob); // Store the recorded audio blob
+      setAudioBlob(blob);
       setIsRecording(false);
-      setIsPaused(false); // Reset pause state
-      setTime(0); // Reset timer
+      setIsPaused(false);
+      setTime(0);
     } else {
-      setTime(0); // Reset timer when starting a new recording
+      setTime(0);
       setIsRecording(true);
     }
   };
@@ -143,12 +145,31 @@ const Recorder = () => {
   const handleSaveClick = async () => {
     if (fileNameInput) {
       await saveAudioToIndexedDB(audioBlob, fileNameInput);
-      setAudioBlob(null); // Clear the audio blob after saving
-      setFileNameInput(""); // Clear the filename input
-      setIsModalOpen(false); // Close the modal
+      setAudioBlob(null);
+      setFileNameInput("");
+      setIsModalOpen(false);
       alert("Recording saved successfully!");
     } else {
       alert("Filename is required to save the recording.");
+    }
+  };
+
+
+//handle download click
+  const handleDownloadClick = async () => {
+    if (audioBlob) {
+      try {
+        const mp3Blob = await convertRecordedAudioToMp3(audioBlob);
+        const url = URL.createObjectURL(mp3Blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileNameInput ? `${fileNameInput}.mp3` : "recording.mp3";
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Error converting or downloading audio:", error);
+        alert("Failed to download recording.");
+      }
     }
   };
 
@@ -158,7 +179,7 @@ const Recorder = () => {
       <div className="relative">
         <FaMicrophone className="text-black text-6xl sm:text-7xl mb-4 sm:mb-6 transform transition hover:scale-110" />
         {isRecording && (
-          <div className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full animate-ping" />
+          <div className="absolute top-0 right-0 w-4 h-4 bg-rose-500 rounded-full animate-ping" />
         )}
       </div>
 
@@ -178,8 +199,8 @@ const Recorder = () => {
         {/* Record/Stop Button */}
         <button
           className={`p-3 ${
-            isRecording ? "bg-red-500" : "bg-white"
-          } text-white rounded-full hover:bg-red-600 transition shadow-lg flex items-center justify-center hover:scale-110`}
+            isRecording ? "bg-rose-500" : "bg-indigo-500"
+          } text-white rounded-full hover:bg-rose-600 transition shadow-lg flex items-center justify-center hover:scale-110`}
           onClick={handleRecordClick}
         >
           {isRecording ? <FaStop size={20} /> : <FaMicrophone size={20} />}
@@ -189,7 +210,7 @@ const Recorder = () => {
         {isRecording && (
           <button
             className={`p-3 ${
-              isPaused ? "bg-green-500" : "bg-yellow-500"
+              isPaused ? "bg-emerald-500" : "bg-amber-500"
             } text-white rounded-full transition shadow-lg flex items-center justify-center hover:scale-110`}
             onClick={handlePauseClick}
           >
@@ -200,7 +221,7 @@ const Recorder = () => {
         {/* Preview Button */}
         {audioBlob && !isRecording && (
           <button
-            className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition shadow-lg flex items-center justify-center hover:scale-110"
+            className="p-3 bg-sky-500 text-white rounded-full hover:bg-sky-600 transition shadow-lg flex items-center justify-center hover:scale-110"
             onClick={handlePreviewClick}
           >
             {isPlayingPreview ? <FaPause size={18} /> : <FaPlay size={18} />}
@@ -210,10 +231,20 @@ const Recorder = () => {
         {/* Save Button */}
         {audioBlob && !isRecording && (
           <button
-            className="p-3 bg-green-500 text-white rounded-full hover:bg-green-600 transition shadow-lg flex items-center justify-center hover:scale-110"
+            className="p-3 bg-teal-500 text-white rounded-full hover:bg-teal-600 transition shadow-lg flex items-center justify-center hover:scale-110"
             onClick={() => setIsModalOpen(true)}
           >
             <FaSave size={18} />
+          </button>
+        )}
+
+        {/* Download Button */}
+        {audioBlob && !isRecording && (
+          <button
+            className="p-3 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition shadow-lg flex items-center justify-center hover:scale-110"
+            onClick={handleDownloadClick}
+          >
+            <FaDownload size={18} />
           </button>
         )}
       </div>
@@ -224,40 +255,41 @@ const Recorder = () => {
           <audio
             ref={audioRef}
             src={URL.createObjectURL(audioBlob)}
-            controls // Show default audio controls
+            controls
             className="w-full"
           />
         </div>
       )}
 
-{isModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md">
-      <h2 className="text-lg font-semibold mb-4 text-black">Save Recording</h2>
-      <input
-        type="text"
-        placeholder="Enter a name for your recording"
-        value={fileNameInput}
-        onChange={(e) => setFileNameInput(e.target.value)}
-        className="w-full p-2 border border-gray-300 rounded-lg mb-4 text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <div className="flex justify-end gap-2">
-        <button
-          onClick={() => setIsModalOpen(false)}
-          className="bg-gray-500 text-white px-2 py-0.5 rounded text-[10px] hover:bg-gray-600 transition h-6 min-w-[50px] flex items-center justify-center leading-none"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSaveClick}
-          className="bg-green-500 text-white px-2 py-0.5 rounded text-[10px] hover:bg-green-600 transition h-6 min-w-[50px] flex items-center justify-center leading-none"
-        >
-          Save
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      {/* Save Recording Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md">
+            <h2 className="text-lg font-semibold mb-4 text-black">Save Recording</h2>
+            <input
+              type="text"
+              placeholder="Enter a name for your recording"
+              value={fileNameInput}
+              onChange={(e) => setFileNameInput(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-lg mb-4 text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="bg-slate-500 text-white px-2 py-0.5 rounded text-[10px] hover:bg-slate-600 transition h-6 min-w-[50px] flex items-center justify-center leading-none"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveClick}
+                className="bg-teal-500 text-white px-2 py-0.5 rounded text-[10px] hover:bg-teal-600 transition h-6 min-w-[50px] flex items-center justify-center leading-none"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

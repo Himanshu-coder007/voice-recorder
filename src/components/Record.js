@@ -1,3 +1,5 @@
+import lamejs from "lamejs";
+
 let mediaRecorder;
 let audioChunks = [];
 let audioContext;
@@ -9,7 +11,7 @@ let source;
 const initializeAudioContext = (stream) => {
   audioContext = new AudioContext();
   analyser = audioContext.createAnalyser();
-  analyser.fftSize = 256; // Adjust for smoother or more detailed waveforms
+  analyser.fftSize = 256;
   dataArray = new Uint8Array(analyser.frequencyBinCount);
 
   source = audioContext.createMediaStreamSource(stream);
@@ -19,29 +21,23 @@ const initializeAudioContext = (stream) => {
 // Function to start recording
 export const startRecording = async (onAudioData) => {
   try {
-    // Request access to the microphone
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);
-
-    // Initialize audio context and analyser for visualization
     initializeAudioContext(stream);
 
-    // Collect audio data chunks
     mediaRecorder.ondataavailable = (event) => {
       audioChunks.push(event.data);
     };
 
-    // Start recording
     mediaRecorder.start();
     console.log("Recording started...");
 
-    // Pass the analyser and dataArray to the callback for visualization
     if (onAudioData) {
       onAudioData(analyser, dataArray);
     }
   } catch (error) {
     console.error("Error accessing microphone:", error);
-    throw error; // Re-throw the error for handling in the calling function
+    throw error;
   }
 };
 
@@ -70,17 +66,14 @@ export const stopRecording = () => {
     }
 
     mediaRecorder.onstop = () => {
-      // Combine audio chunks into a single Blob
-      const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-      audioChunks = []; // Clear chunks for the next recording
+      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+      audioChunks = [];
       console.log("Recording stopped.");
 
-      // Disconnect the audio source
       if (source) {
         source.disconnect();
       }
 
-      // Resolve with the audio blob
       resolve(audioBlob);
     };
 
@@ -94,7 +87,6 @@ export const saveAudioToIndexedDB = (audioBlob, fileName) => {
     const dbName = "VoiceRecorderDB";
     const storeName = "Recordings";
 
-    // Open or create IndexedDB database
     const request = indexedDB.open(dbName, 1);
 
     request.onupgradeneeded = (event) => {
@@ -109,10 +101,9 @@ export const saveAudioToIndexedDB = (audioBlob, fileName) => {
       const transaction = db.transaction(storeName, "readwrite");
       const store = transaction.objectStore(storeName);
 
-      // Add the audio Blob and filename to the store
       const addRequest = store.add({
         audio: audioBlob,
-        fileName: fileName, // Save the filename
+        fileName: fileName,
         timestamp: new Date(),
       });
 
@@ -132,4 +123,98 @@ export const saveAudioToIndexedDB = (audioBlob, fileName) => {
       reject(error);
     };
   });
+};
+
+// Function to convert WebM to WAV
+const convertToWav = async (blob) => {
+  const audioContext = new AudioContext();
+  const arrayBuffer = await blob.arrayBuffer();
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+  return encodeAudioBufferToWav(audioBuffer);
+};
+
+// Function to encode AudioBuffer to WAV format
+const encodeAudioBufferToWav = (audioBuffer) => {
+  const numChannels = audioBuffer.numberOfChannels;
+  const sampleRate = audioBuffer.sampleRate;
+  const length = audioBuffer.length;
+
+  const buffer = new ArrayBuffer(44 + length * numChannels * 2);
+  const view = new DataView(buffer);
+
+  writeString(view, 0, "RIFF");
+  view.setUint32(4, 36 + length * numChannels * 2, true);
+  writeString(view, 8, "WAVE");
+  writeString(view, 12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * numChannels * 2, true);
+  view.setUint16(32, numChannels * 2, true);
+  view.setUint16(34, 16, true);
+  writeString(view, 36, "data");
+  view.setUint32(40, length * numChannels * 2, true);
+
+  let offset = 44;
+  for (let i = 0; i < length; i++) {
+    for (let channel = 0; channel < numChannels; channel++) {
+      const sample = Math.max(
+        -1,
+        Math.min(1, audioBuffer.getChannelData(channel)[i])
+      );
+      view.setInt16(
+        offset,
+        sample < 0 ? sample * 0x8000 : sample * 0x7fff,
+        true
+      );
+      offset += 2;
+    }
+  }
+
+  return new Blob([view], { type: "audio/wav" });
+};
+
+// Helper function to write strings to DataView
+const writeString = (view, offset, string) => {
+  for (let i = 0; i < string.length; i++) {
+    view.setUint8(offset + i, string.charCodeAt(i));
+  }
+};
+
+// Function to convert WAV to MP3
+export const convertWavToMp3 = async (wavBlob) => {
+  const wavArrayBuffer = await wavBlob.arrayBuffer();
+  const wavArray = new Uint8Array(wavArrayBuffer);
+  const wav = lamejs.WavHeader.readHeader(wavArray);
+
+  if (!wav || !wav.dataLen) {
+    throw new Error("Invalid WAV file format.");
+  }
+
+  const samples = new Int16Array(
+    wavArrayBuffer,
+    wav.dataOffset,
+    wav.dataLen / 2
+  );
+  const mp3Encoder = new lamejs.Mp3Encoder(wav.channels, wav.sampleRate, 128);
+  const mp3Data = [];
+
+  const sampleBlockSize = 1152;
+  for (let i = 0; i < samples.length; i += sampleBlockSize) {
+    const sampleChunk = samples.subarray(i, i + sampleBlockSize);
+    const mp3Buffer = mp3Encoder.encodeBuffer(sampleChunk);
+    if (mp3Buffer.length > 0) mp3Data.push(mp3Buffer);
+  }
+
+  const finalMp3Buffer = mp3Encoder.flush();
+  if (finalMp3Buffer.length > 0) mp3Data.push(finalMp3Buffer);
+
+  return new Blob(mp3Data, { type: "audio/mp3" });
+};
+
+// Function to convert recorded audio to MP3
+export const convertRecordedAudioToMp3 = async (blob) => {
+  const wavBlob = await convertToWav(blob);
+  return await convertWavToMp3(wavBlob);
 };
