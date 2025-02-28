@@ -10,7 +10,7 @@ import {
   convertRecordedAudioToMp3, 
 } from "./Record.js";
 
-const Recorder = () => {
+const Recorder = ({ onRecordingComplete }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [time, setTime] = useState(0);
@@ -148,6 +148,12 @@ const Recorder = () => {
       setAudioBlob(null);
       setFileNameInput("");
       setIsModalOpen(false);
+
+      // Notify parent (Dashboard) to update the stored voices table
+      if (onRecordingComplete) {
+        onRecordingComplete();
+      }
+
       alert("Recording saved successfully!");
     } else {
       alert("Filename is required to save the recording.");
@@ -156,22 +162,29 @@ const Recorder = () => {
 
 
 //handle download click
-  const handleDownloadClick = async () => {
-    if (audioBlob) {
-      try {
-        const mp3Blob = await convertRecordedAudioToMp3(audioBlob);
-        const url = URL.createObjectURL(mp3Blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileNameInput ? `${fileNameInput}.mp3` : "recording.mp3";
-        a.click();
-        URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error("Error converting or downloading audio:", error);
-        alert("Failed to download recording.");
-      }
-    }
-  };
+const handleDownloadClick = async () => {
+  if (!audioBlob) {
+    alert("No recording available to download.");
+    return;
+  }
+
+  try {
+    // If MP3 conversion is needed, convert before download
+    const mp3Blob = await convertRecordedAudioToMp3(audioBlob);
+    
+    const url = URL.createObjectURL(mp3Blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileNameInput ? `${fileNameInput}.mp3` : "recording.mp3";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Error downloading audio:", error);
+    alert("Failed to download the recording.");
+  }
+};
 
   return (
     <div className="w-full max-w-sm sm:max-w-md md:max-w-lg flex flex-col items-center justify-center bg-white bg-opacity-20 backdrop-blur-md p-6 sm:p-8 rounded-2xl shadow-2xl transform transition hover:scale-105">
@@ -238,15 +251,7 @@ const Recorder = () => {
           </button>
         )}
 
-        {/* Download Button */}
-        {audioBlob && !isRecording && (
-          <button
-            className="p-3 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition shadow-lg flex items-center justify-center hover:scale-110"
-            onClick={handleDownloadClick}
-          >
-            <FaDownload size={18} />
-          </button>
-        )}
+       
       </div>
 
       {/* Audio Preview Box */}
