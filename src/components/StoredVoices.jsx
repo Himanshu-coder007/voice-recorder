@@ -1,24 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { fetchStoredVoices } from "./FetchVoices"; // Use named import
+import React, { useEffect } from "react";
 import { FaDownload, FaTrash } from "react-icons/fa";
 
-const StoredVoices = () => {
-  const [recordings, setRecordings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
+const StoredVoices = ({ recordings, updateRecordings }) => {
+  // Fetch updated data on mount
   useEffect(() => {
-    fetchStoredVoices("VoiceRecorderDB", "Recordings")
-      .then((voices) => {
-        console.log("Stored Voices:", voices);
-        setRecordings(voices);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching voices:", error);
-        setError(error);
-        setLoading(false);
-      });
+    updateRecordings();
   }, []);
 
   // Function to handle downloading a recording
@@ -42,7 +28,7 @@ const StoredVoices = () => {
 
       store.delete(id).onsuccess = () => {
         console.log("Recording deleted:", id);
-        setRecordings((prev) => prev.filter((rec) => rec.id !== id)); // Update UI instantly
+        updateRecordings(); // Fetch updated list after deletion
       };
     };
 
@@ -50,14 +36,6 @@ const StoredVoices = () => {
       console.error("Error deleting recording:", event.target.error);
     };
   };
-
-  if (loading) {
-    return <div className="text-gray-900">Loading recordings...</div>;
-  }
-
-  if (error) {
-    return <div className="text-gray-900">Error fetching recordings: {error.message}</div>;
-  }
 
   return (
     <div className="w-full p-4">

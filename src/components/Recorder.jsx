@@ -148,17 +148,18 @@ const Recorder = ({ onRecordingComplete }) => {
       setAudioBlob(null);
       setFileNameInput("");
       setIsModalOpen(false);
-
+  
       // Notify parent (Dashboard) to update the stored voices table
       if (onRecordingComplete) {
         onRecordingComplete();
       }
-
+  
       alert("Recording saved successfully!");
     } else {
       alert("Filename is required to save the recording.");
     }
   };
+  
 
 
 //handle download click

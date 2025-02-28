@@ -18,12 +18,12 @@ const Dashboard = () => {
         Voice Recorder
       </p>
 
-      {/* Recorder Component with Callback */}
+      {/* Pass update function to Recorder */}
       <div className="flex flex-col justify-center items-center bg-white/20 p-6 rounded-2xl shadow-xl backdrop-blur-lg">
         <Recorder onRecordingComplete={updateRecordings} />
       </div>
 
-      {/* Stored Voices Section - Pass recordings and updater */}
+      {/* Pass data & update function to StoredVoices */}
       <div className="w-full max-w-4xl bg-white/20 p-6 rounded-2xl shadow-lg backdrop-blur-md">
         <StoredVoices recordings={recordings} updateRecordings={updateRecordings} />
       </div>
