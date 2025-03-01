@@ -129,7 +129,7 @@ const MicrophoneDashboard = () => {
           </div>
         )}
         <img
-          src="https://cdn-icons-png.flaticon.com/512/11372/11372592.png"
+          src="https://cdn-icons-png.flaticon.com/512/9357/9357481.png"
           alt="Microphone"
           className="w-16 h-16 md:w-24 md:h-24 relative z-10"
         />
