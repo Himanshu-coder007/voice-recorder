@@ -59,7 +59,6 @@ class AudioRecorder {
           this.audioUrl = URL.createObjectURL(this.audioBlob);
           this.isRecording = false;
           this.isPaused = false;
-          console.log("Audio URL generated:", this.audioUrl); // Debugging
           resolve(this.audioUrl); // Resolve the promise with the audio URL
         };
 

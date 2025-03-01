@@ -1,15 +1,12 @@
-import { useState } from "react";
+import React from "react";
+import MicrophoneDashboard from "./components/Updated/Dashboard";
 
-import VoiceRecorder from "./components/Dashboard";
-
-function App() {
-  const [count, setCount] = useState(0);
-
+const App = () => {
   return (
-    <>
-    <VoiceRecorder/>
-    </>
+    <div className="flex w-full h-screen bg-gray-900">
+      <MicrophoneDashboard />
+    </div>
   );
-}
+};
 
 export default App;

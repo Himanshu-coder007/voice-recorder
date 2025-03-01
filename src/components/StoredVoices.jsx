@@ -39,9 +39,11 @@ const StoredVoices = ({ recordings, updateRecordings }) => {
 
   return (
     <div className="w-full p-4">
-      <h2 className="text-lg font-semibold mb-4 text-gray-900">Stored Voices</h2>
+      <h2 className="text-xl font-bold text-white text-center mb-4">
+        Stored Voices
+      </h2>
       {recordings.length === 0 ? (
-        <p className="text-gray-900">No recordings found.</p>
+        <p className="text-white text-center">No recordings found.</p>
       ) : (
         <div className="overflow-x-auto w-full">
           <table className="w-full max-w-full border-collapse border border-gray-300 bg-white">
