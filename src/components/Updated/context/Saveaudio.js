@@ -31,7 +31,7 @@ class SaveAudio {
     });
   }
 
-  // Save audio blob to IndexedDB with filename
+  // Save audio blob to IndexedDB with filename and timestamp
   async saveAudio(audioBlob, filename) {
     if (!this.db) {
       await this.openDB();
@@ -42,8 +42,8 @@ class SaveAudio {
       const store = transaction.objectStore(this.storeName);
       const request = store.add({
         audio: audioBlob,
-        filename,
-        timestamp: new Date(),
+        filename: filename,
+        timestamp: new Date(), // Add timestamp
       });
 
       request.onsuccess = () => {
@@ -52,27 +52,6 @@ class SaveAudio {
 
       request.onerror = (event) => {
         reject(`Error saving audio: ${event.target.error}`);
-      };
-    });
-  }
-
-  // Get all saved recordings from IndexedDB
-  async getRecordings() {
-    if (!this.db) {
-      await this.openDB();
-    }
-
-    return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction([this.storeName], "readonly");
-      const store = transaction.objectStore(this.storeName);
-      const request = store.getAll();
-
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-
-      request.onerror = (event) => {
-        reject(`Error retrieving recordings: ${event.target.error}`);
       };
     });
   }

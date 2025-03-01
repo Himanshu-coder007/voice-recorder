@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
 import FetchAudio from "./context/Fetchaudio.js";
-import { FaMoon, FaSun } from "react-icons/fa"; // Import dark/light mode icons
 
 const Library = ({ onClose }) => {
   const [recordings, setRecordings] = useState([]); // State to store fetched recordings
@@ -46,6 +45,12 @@ const Library = ({ onClose }) => {
     }
   };
 
+  // Format timestamp into a user-friendly string
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleString(); // Format as "MM/DD/YYYY, HH:MM:SS AM/PM"
+  };
+
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       {/* Background Blur */}
@@ -86,6 +91,9 @@ const Library = ({ onClose }) => {
               .map((recording) => (
                 <div key={recording.id} className="bg-gray-700 p-4 rounded-lg">
                   <p className="text-white font-semibold">{recording.filename}</p>
+                  <p className="text-sm text-gray-400">
+                    Saved on: {formatTimestamp(recording.timestamp)}
+                  </p>
                   <audio
                     controls
                     src={URL.createObjectURL(recording.audio)}

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import AudioRecorder from "./context/Record.js";
 import SaveAudio from "./context/Saveaudio.js";
 import Library from "./Library.jsx";
-import { FaMoon, FaSun } from "react-icons/fa"; // Import dark/light mode icons
+import { FaMoon, FaSun, FaMicrophone } from "react-icons/fa"; // Import icons
 
 const MicrophoneDashboard = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -117,6 +117,12 @@ const MicrophoneDashboard = () => {
       >
         Library
       </button>
+
+      {/* Title with Microphone Icon */}
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 z-20">
+        <FaMicrophone className="text-2xl text-pink-500" /> {/* Microphone icon */}
+        <h1 className="text-2xl font-bold">Voice Recorder App</h1> {/* Title */}
+      </div>
 
       {/* Library Popup */}
       {showLibrary && <Library onClose={() => setShowLibrary(false)} />}
