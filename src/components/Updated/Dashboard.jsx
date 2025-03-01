@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import AudioRecorder from "./context/Record.js";
 import SaveAudio from "./context/Saveaudio.js";
-import Library from "./Library.jsx"; // Import the Library component
+import Library from "./Library.jsx";
+import { FaMoon, FaSun } from "react-icons/fa"; // Import dark/light mode icons
 
 const MicrophoneDashboard = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -11,9 +12,15 @@ const MicrophoneDashboard = () => {
   const [audioBlob, setAudioBlob] = useState(null);
   const [filename, setFilename] = useState("");
   const [showFilenameInput, setShowFilenameInput] = useState(false);
-  const [showLibrary, setShowLibrary] = useState(false); // State to control Library popup visibility
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true); // State for dark/light mode
   const audioRecorderRef = useRef(new AudioRecorder());
   const saveAudioRef = useRef(new SaveAudio());
+
+  // Toggle dark/light mode
+  const toggleDarkMode = () => {
+    setIsDarkMode((prevMode) => !prevMode);
+  };
 
   // Handle start/stop recording
   const handleRecording = async () => {
@@ -90,7 +97,19 @@ const MicrophoneDashboard = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen w-full bg-gray-900 text-white relative overflow-hidden">
+    <div
+      className={`flex flex-col items-center justify-center h-screen w-full ${
+        isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
+      } relative overflow-hidden transition-colors duration-300`}
+    >
+      {/* Dark/Light Mode Toggle Button */}
+      <button
+        onClick={toggleDarkMode}
+        className="absolute top-4 right-4 p-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white transition-all duration-300 ease-in-out transform hover:scale-105 z-20"
+      >
+        {isDarkMode ? <FaSun size={20} /> : <FaMoon size={20} />}
+      </button>
+
       {/* Library Button in Top-Left Corner */}
       <button
         onClick={() => setShowLibrary(true)} // Show Library popup
@@ -103,29 +122,29 @@ const MicrophoneDashboard = () => {
       {showLibrary && <Library onClose={() => setShowLibrary(false)} />}
 
       {/* Microphone Image with Animation */}
-      <div className="mb-16 relative">
+      <div className="mb-8 md:mb-16 relative">
         {isRecording && !isPaused && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="animate-ping absolute w-32 h-32 bg-pink-500 rounded-full opacity-75"></div>
+            <div className="animate-ping absolute w-24 h-24 md:w-32 md:h-32 bg-pink-500 rounded-full opacity-75"></div>
           </div>
         )}
         <img
           src="https://cdn-icons-png.flaticon.com/512/9357/9357481.png"
           alt="Microphone"
-          className="w-24 h-24 relative z-10"
+          className="w-16 h-16 md:w-24 md:h-24 relative z-10"
         />
       </div>
 
       {/* Timer Display */}
-      <div className="mb-12 text-4xl font-bold">{formatTime(time)}</div>
+      <div className="mb-8 md:mb-12 text-3xl md:text-4xl font-bold">{formatTime(time)}</div>
 
       {/* Conditional Rendering for Buttons */}
       {isRecording ? (
-        <div className="flex gap-4">
+        <div className="flex flex-col md:flex-row gap-4">
           {/* Pause/Resume Button */}
           <button
             onClick={handlePauseResume}
-            className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-teal-500 hover:to-blue-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 z-20"
+            className="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-teal-500 hover:to-blue-600 text-white font-semibold py-2 px-4 md:py-3 md:px-6 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 z-20"
           >
             {isPaused ? "Resume Recording" : "Pause Recording"}
           </button>
@@ -133,7 +152,7 @@ const MicrophoneDashboard = () => {
           {/* Stop Recording Button */}
           <button
             onClick={handleRecording}
-            className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-orange-500 hover:to-red-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 z-20"
+            className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-orange-500 hover:to-red-600 text-white font-semibold py-2 px-4 md:py-3 md:px-6 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 z-20"
           >
             Stop Recording
           </button>
@@ -142,7 +161,7 @@ const MicrophoneDashboard = () => {
         // Start Recording Button
         <button
           onClick={handleRecording}
-          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 z-20"
+          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-600 text-white font-semibold py-2 px-4 md:py-3 md:px-6 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 z-20"
         >
           Start Recording
         </button>
@@ -156,7 +175,7 @@ const MicrophoneDashboard = () => {
             <audio
               controls
               src={audioUrl}
-              className="w-3/4 max-w-md h-10 bg-gray-800 rounded-lg shadow-md"
+              className="w-full md:w-3/4 max-w-md h-10 bg-gray-800 rounded-lg shadow-md"
             />
           </div>
 
@@ -177,7 +196,7 @@ const MicrophoneDashboard = () => {
                 />
                 <button
                   onClick={handleSaveAudio}
-                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-emerald-500 hover:to-green-600 text-white font-semibold py-2 px-4 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 w-2/4"
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-emerald-500 hover:to-green-600 text-white font-semibold py-2 px-4 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 w-full md:w-2/4"
                 >
                   Save Recording
                 </button>
@@ -185,7 +204,7 @@ const MicrophoneDashboard = () => {
             ) : (
               <button
                 onClick={() => setShowFilenameInput(true)}
-                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-emerald-500 hover:to-green-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 w-2/4"
+                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-emerald-500 hover:to-green-600 text-white font-semibold py-2 px-4 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 w-full md:w-2/4"
               >
                 Save Recording
               </button>

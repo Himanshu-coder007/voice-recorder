@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useRef } from "react"; // Import useRef
-import FetchAudio from "./context/Fetchaudio.js"; // Import the FetchAudio class
+import React, { useEffect, useState, useRef } from "react";
+import FetchAudio from "./context/Fetchaudio.js";
+import { FaMoon, FaSun } from "react-icons/fa"; // Import dark/light mode icons
 
 const Library = ({ onClose }) => {
   const [recordings, setRecordings] = useState([]); // State to store fetched recordings
@@ -51,7 +52,7 @@ const Library = ({ onClose }) => {
       <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={onClose}></div>
 
       {/* Modal Box */}
-      <div className="bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md relative z-50">
+      <div className="bg-gray-800 rounded-lg shadow-lg p-4 md:p-6 w-full max-w-md mx-4 md:mx-0 relative z-50">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -78,7 +79,7 @@ const Library = ({ onClose }) => {
 
         {/* Display Recordings */}
         {recordings.length > 0 ? (
-          <div className="space-y-4 max-h-96 overflow-y-auto">
+          <div className="space-y-4 max-h-64 md:max-h-96 overflow-y-auto">
             {recordings
               .slice() // Create a copy of the array to avoid mutating the original
               .reverse() // Reverse the array to show the latest recordings first
