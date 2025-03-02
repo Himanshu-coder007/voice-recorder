@@ -74,6 +74,15 @@ const MicrophoneDashboard = () => {
     }
   };
 
+  // Handle discarding the recording
+  const handleDiscard = () => {
+    setAudioUrl(null);
+    setAudioBlob(null);
+    setFilename("");
+    setShowFilenameInput(false);
+    setTime(0); // Reset the timer
+  };
+
   // Timer logic
   useEffect(() => {
     let interval;
@@ -120,8 +129,8 @@ const MicrophoneDashboard = () => {
 
       {/* Title with Microphone Icon */}
       <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 z-20">
-        <FaMicrophone className="text-2xl text-pink-500" /> {/* Microphone icon */}
-        <h1 className="text-2xl font-bold">Voice Recorder App</h1> {/* Title */}
+        <FaMicrophone className="text-3xl text-pink-500" /> {/* Microphone icon */}
+        <h1 className="text-3xl font-bold">Voice Recorder App</h1> {/* Title */}
       </div>
 
       {/* Library Popup */}
@@ -200,20 +209,42 @@ const MicrophoneDashboard = () => {
                   onChange={(e) => setFilename(e.target.value)}
                   className="w-full p-2 mb-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
+                <div className="flex gap-2 w-full">
+                  {/* Discard Button */}
+                  <button
+                    onClick={handleDiscard}
+                    className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-orange-500 hover:to-red-600 text-white font-semibold py-2 px-4 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 w-1/2"
+                  >
+                    Discard
+                  </button>
+
+                  {/* Save Recording Button */}
+                  <button
+                    onClick={handleSaveAudio}
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-emerald-500 hover:to-green-600 text-white font-semibold py-2 px-4 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 w-1/2"
+                  >
+                    Save Recording
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="flex gap-2 w-full">
+                {/* Discard Button */}
                 <button
-                  onClick={handleSaveAudio}
-                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-emerald-500 hover:to-green-600 text-white font-semibold py-2 px-4 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 w-full md:w-2/4"
+                  onClick={handleDiscard}
+                  className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-orange-500 hover:to-red-600 text-white font-semibold py-2 px-4 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 w-1/2"
+                >
+                  Discard
+                </button>
+
+                {/* Save Recording Button */}
+                <button
+                  onClick={() => setShowFilenameInput(true)}
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-emerald-500 hover:to-green-600 text-white font-semibold py-2 px-4 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 w-1/2"
                 >
                   Save Recording
                 </button>
-              </>
-            ) : (
-              <button
-                onClick={() => setShowFilenameInput(true)}
-                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-emerald-500 hover:to-green-600 text-white font-semibold py-2 px-4 rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 w-full md:w-2/4"
-              >
-                Save Recording
-              </button>
+              </div>
             )}
           </div>
         </div>
